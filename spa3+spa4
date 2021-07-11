@@ -1,0 +1,29 @@
+import requests
+def getHTMLText(url):
+    try:
+        r=requests.get(url,timeout=60)
+        r.raise_for_status()
+        r.encoding='utf-8'
+        return r.json()
+    except:
+        print('url:',url)
+for j in range(10):
+    url=f"https://spa3.scrape.center/api/movie/?limit=10&offset={j*10}"
+    html=getHTMLText(url)
+    for i in range(10):
+        print(html['results'][i]['id'],html['results'][i]['name'])
+************************************************************************************
+import requests
+def getHTMLText(url):
+    try:
+        r=requests.get(url,timeout=60)
+        r.raise_for_status()
+        r.encoding='utf-8'
+        return r.json()
+    except:
+        pass
+url="https://spa4.scrape.center/api/news/?limit=10&offset=0"
+html=getHTMLText(url)
+for i in range(10):
+    print(html['results'][i]['title'])
+
