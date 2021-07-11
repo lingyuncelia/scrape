@@ -1,0 +1,6 @@
+import requests
+url="https://admin:admin@ssr3.scrape.center/"
+r=requests.get(url)
+r.encoding='utf-8'
+r=r.text
+print(r)#Internal Server Error
