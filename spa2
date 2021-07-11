@@ -1,0 +1,83 @@
+#单线程
+import requests
+import time
+t1=time.time()
+import hashlib
+import base64
+def getHTMLText(url):
+    try:
+        r=requests.get(url,timeout=60)
+        r.encoding='utf-8'
+        return r.json()
+    except:
+        pass
+a="ef34#teuq0btua#(-57w1q5o5--j@98xygimlyfxs*-!i-0-mb"
+for b in range(1,101):
+    c=f"{a}{b}"
+    url_id=base64.b64encode(c.encode('utf-8'))
+    url_id=url_id.decode()
+    #1：时间戳取整    
+    t=int(time.time())
+    #2：SHA1加密    
+    s1 = f"/api/movie/{url_id},0,{t}"
+    o = hashlib.sha1(s1.encode("utf-8")).hexdigest()    
+    s2=f'{o},{t}'
+    s3=s2.encode('utf-8')
+    #3：Base64加密
+    token=base64.b64encode(s3)
+    #4:bytes转str
+    token=token.decode()
+    url=f"https://spa2.scrape.center/api/movie/{url_id}/?token={token}"
+    html=getHTMLText(url)
+    print(html['id'],html['drama'])
+print(time.time()-t1)#约一分钟
+************************************
+#异步爬取详情页
+import requests
+import time
+t1=time.time()
+import hashlib
+import base64
+import asyncio
+import aiohttp
+def getURL(b):
+    a="ef34#teuq0btua#(-57w1q5o5--j@98xygimlyfxs*-!i-0-mb"
+    c=f"{a}{b}"
+    url_id=base64.b64encode(c.encode('utf-8'))
+    url_id=url_id.decode()
+    #1：时间戳取整    
+    t=int(time.time())
+    #2：SHA1加密    
+    s1 = f"/api/movie/{url_id},0,{t}"
+    o = hashlib.sha1(s1.encode("utf-8")).hexdigest()    
+    s2=f'{o},{t}'
+    s3=s2.encode('utf-8')
+    #3：Base64加密
+    token=base64.b64encode(s3)
+    #4:bytes转str
+    token=token.decode()
+    url=f"https://spa2.scrape.center/api/movie/{url_id}/?token={token}"
+    return(url)
+async def get(session, queue):
+    while True:
+        try:
+            page = queue.get_nowait()
+        except asyncio.QueueEmpty:
+            return
+        url = getURL(page)
+        resp = await session.get(url,timeout=60)
+        html=await resp.json(encoding='utf-8')
+        print(html['id'],html['drama'])        
+async def main():
+    async with aiohttp.ClientSession() as session:
+        queue = asyncio.Queue()
+        for page in range(1,101):
+            queue.put_nowait(page)
+        tasks = []
+        for _ in range(100):
+            task = get(session, queue)
+            tasks.append(task)
+        await asyncio.wait(tasks)
+loop = asyncio.get_event_loop()
+loop.run_until_complete(main())
+print(time.time()-t1)#约5秒
