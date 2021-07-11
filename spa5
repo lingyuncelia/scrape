@@ -1,0 +1,28 @@
+import requests
+import time
+t1=time.time()
+import asyncio
+import aiohttp
+async def get(session, queue):
+    while True:
+        try:
+            page = queue.get_nowait()
+        except asyncio.QueueEmpty:
+            return
+        url = f"https://spa5.scrape.center/api/book/?limit=18&offset={page*18}"
+        resp = await session.get(url,timeout=60)
+        html=await resp.json(encoding='utf-8')
+        print([html['results'][i]['name'] for i in range(18)])        
+async def main():
+    async with aiohttp.ClientSession() as session:
+        queue = asyncio.Queue()
+        for page in range(0,503):
+            queue.put_nowait(page)
+        tasks = []
+        for _ in range(100):
+            task = get(session, queue)
+            tasks.append(task)
+        await asyncio.wait(tasks)
+loop = asyncio.get_event_loop()
+loop.run_until_complete(main())
+print(time.time()-t1)#约16秒
