@@ -1,0 +1,47 @@
+import requests
+import time
+from lxml import etree
+for i in range(1,11):
+    url=f"https://ssr1.scrape.center/page/{i}"
+    r=requests.get(url)
+    r.encoding='utf-8'
+    r=r.text
+    selector=etree.HTML(r)
+    for j in range(1,11):
+        x1=f'//*[@id="index"]/div[1]/div[1]/div[{j}]/div/div/div[2]/a/h2/text()'
+        s1=selector.xpath(x1)[0]
+        print(s1)
+################################################################################
+#异步爬取详情页
+import requests
+import time
+from lxml import etree
+#异步爬取详情页
+import asyncio
+import aiohttp
+template = 'https://ssr1.scrape.center/detail/{page}'
+async def get(session, queue):
+    while True:
+        try:
+            page = queue.get_nowait()
+        except asyncio.QueueEmpty:
+            return
+        url = template.format(page=page)
+        resp = await session.get(url)
+        r=await resp.text(encoding='utf-8')
+        selector = etree.HTML(r)
+        x1='//*[@id="detail"]/div[1]/div/div/div[1]/div/div[2]/div[4]/p/text()'
+        s2=selector.xpath(x1)[0]
+        print(page,s2)        
+async def main():
+    async with aiohttp.ClientSession() as session:
+        queue = asyncio.Queue()
+        for page in range(1,101):
+            queue.put_nowait(page)
+        tasks = []
+        for _ in range(100):
+            task = get(session, queue)
+            tasks.append(task)
+        await asyncio.wait(tasks)
+loop = asyncio.get_event_loop()
+loop.run_until_complete(main())
